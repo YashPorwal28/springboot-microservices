@@ -68,6 +68,7 @@ public class QuizServiceImpl implements QuizService {
 
             String catgoryId = quiz.getCategoryId();
 
+
           CategoryDto categoryDto =  this.webClient.get().uri("/api/v1/categories/" + catgoryId).retrieve().bodyToMono(CategoryDto.class).block();
           QuizDto quizDto = modelMapper.map(quiz, QuizDto.class);
             quizDto.setCategory(categoryDto);
