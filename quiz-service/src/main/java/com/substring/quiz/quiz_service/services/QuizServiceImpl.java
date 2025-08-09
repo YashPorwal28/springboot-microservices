@@ -17,6 +17,8 @@ public class QuizServiceImpl implements QuizService {
 
   private final QuizRepository quizRepository;
 
+  private final CategoryFeignService categoryFeignService;
+
   private final ModelMapper modelMapper;
 
   private final CategoryService categoryService;
@@ -24,10 +26,12 @@ public class QuizServiceImpl implements QuizService {
 
   public QuizServiceImpl(
       QuizRepository quizRepository,
+      CategoryFeignService categoryFeignService,
       ModelMapper modelMapper,
       CategoryService categoryService,
       RestTemplate restTemplate) {
     this.quizRepository = quizRepository;
+    this.categoryFeignService = categoryFeignService;
     this.modelMapper = modelMapper;
     this.categoryService = categoryService;
     this.restTemplate = restTemplate;
@@ -74,8 +78,10 @@ public class QuizServiceImpl implements QuizService {
                 (quiz) -> {
                   String catgoryId = quiz.getCategoryId();
 
-                  CategoryDto categoryDto = this.categoryService.findByIdUsingWebClient(catgoryId);
-
+                  // CategoryDto categoryDto  =
+                  // this.categoryService.findByIdUsingWebClient(catgoryId);
+                  // using feign client
+                  CategoryDto categoryDto = categoryFeignService.findById(catgoryId);
                   QuizDto quizDto = modelMapper.map(quiz, QuizDto.class);
                   quizDto.setCategory(categoryDto);
                   return quizDto;
@@ -101,6 +107,16 @@ public class QuizServiceImpl implements QuizService {
   @Override
   public List<QuizDto> findByCategoryId(String categoryId) {
     List<Quiz> quizList = quizRepository.findByCategoryId(categoryId);
-    return quizList.stream().map((quiz) -> modelMapper.map(quiz, QuizDto.class)).toList();
+    List<QuizDto> quizDtosList =
+        quizList.stream()
+            .map(
+                (quiz -> {
+                  CategoryDto categoryDto = categoryFeignService.findById(quiz.getCategoryId());
+                  QuizDto quizDto = modelMapper.map(quiz, QuizDto.class);
+                  quizDto.setCategory(categoryDto);
+                  return quizDto;
+                }))
+            .toList();
+    return quizDtosList;
   }
 }

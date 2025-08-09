@@ -5,12 +5,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceWebClientImpl implements CategoryService {
 
   private final WebClient webClient;
+  private final WebClient.Builder webClientBuilder;
 
-  public CategoryServiceImpl(WebClient webClient) {
-    this.webClient = webClient;
+  public CategoryServiceWebClientImpl( WebClient.Builder webClientBuilder) {
+    this.webClient = webClientBuilder.baseUrl("http://CATEGORY-SERVICE").build() ;
+    this.webClientBuilder = webClientBuilder;
   }
 
   @Override
